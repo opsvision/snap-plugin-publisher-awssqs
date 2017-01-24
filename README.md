@@ -17,7 +17,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 -->
 # Snap-Telemetry Plugin for Amazon Web Services (AWS) Simple Queue Service (SQS) [![Build Status](https://travis-ci.org/opsvision/snap-plugin-publisher-awssqs.svg?branch=master)](https://travis-ci.org/opsvision/snap-plugin-publisher-awssqs) [![Go Report Card](https://goreportcard.com/badge/github.com/opsvision/snap-plugin-publisher-awssqs)](https://goreportcard.com/report/github.com/opsvision/snap-plugin-publisher-awssqs)
-Snap-Telemetry Plugin for SignalFx sends numeric values to [SignalFx](https://awssqs.com/).
+Snap-Telemetry Plugin for AWS SQS sends numeric values to [AWS SQS](https://aws.amazon.com/sqs/).
 
 1. [Getting Started](#getting-started)
   * [System Requirements](#system-requirements)

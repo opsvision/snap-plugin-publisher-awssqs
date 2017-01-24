@@ -1,0 +1,11 @@
+package: github.com/opsvision/snap-plugin-publisher-awssqs
+import:
+- package: github.com/aws/aws-sdk-go
+  subpackages:
+  - aws
+  - aws/credentials
+  - aws/session
+  - service/sqs
+- package: github.com/intelsdi-x/snap-plugin-lib-go
+  subpackages:
+  - v1/plugin

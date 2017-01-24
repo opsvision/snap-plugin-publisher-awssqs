@@ -5,7 +5,7 @@
 PLUGIN='snap-plugin-publisher-awssqs'
 TASK='~/tasks/awssqs.yaml'
 
-if [ -e ${GOPATH} ]; then echo "GOPATH may not be set correctly"; echo -1; fi
+if [ ! -d ${GOPATH} ]; then echo "GOPATH may not be set correctly"; exit -1; fi
 
 if [ -e ${GOPATH}/bin/${PLUGIN} ]; then rm ${GOPATH}/bin/${PLUGIN}; fi
 

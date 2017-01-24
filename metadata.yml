@@ -1,0 +1,10 @@
+name: AWS-SQS
+type: publisher
+maintainer: OpsVision
+license: Apache-2.0
+description: "Publishes metrics to AWS SQS."
+badge:
+  - "[![Build Status](https://travis-ci.org/opsvision/snap-plugin-publisher-awssqs.svg?branch=master)](https://travis-ci.org/opsvision/snap-plugin-publisher-awssqs)"
+ci:
+  - https://travis-ci.org/opsvision/snap-plugin-publisher-awssqs
+status: Development

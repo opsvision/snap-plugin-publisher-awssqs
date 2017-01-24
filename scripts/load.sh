@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# This is a helper script for loading our plugin to expediate testing during development
+# This is a helper script for loading our plugin to expedite testing during development
 
 PLUGIN='snap-plugin-publisher-awssqs'
 TASK=${HOME}'/tasks/awssqs.yaml'

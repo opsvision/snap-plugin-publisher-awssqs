@@ -17,6 +17,7 @@
       publish:
         - plugin_name: "awssqs"
           config:
+            debug_file: "/tmp/awssqs-debug.log"
             akid: "1234ABCD"
             secret: "1234ABCD"
             queue: "https://sqs.us-east-1.amazonaws.com/208379614050/sqs_demo"

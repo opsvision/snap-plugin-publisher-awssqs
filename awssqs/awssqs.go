@@ -19,8 +19,16 @@ package awssqs
 
 // Imports
 import (
+	//"bytes"
+	"encoding/json"
+	"errors"
+	"fmt"
 	"log"
+	"os"
+	"reflect"
 	"regexp"
+	"strings"
+	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
@@ -39,6 +47,8 @@ const (
 // AWSSQS
 type AWSSQS struct {
 	initialized bool
+	hostname    string
+	queue       string
 	service     *sqs.SQS
 }
 
@@ -49,6 +59,26 @@ func New() *AWSSQS {
 
 // initialize
 func (s *AWSSQS) init(cfg plugin.Config) {
+	if s.initialized {
+		return
+	}
+
+	// Enable debugging if requested - call this first!
+	s.setDebugFile(cfg)
+	log.Printf("AWSSQS Plugin Initialized")
+
+	// Get the hostname
+	s.getHostname()
+
+	// Get our required configuration parameters
+	akid := s.getAwsId(cfg)
+	secret := s.getAwsSecret(cfg)
+	queue := s.getAwsQueue(cfg)
+	s.queue = queue
+
+	// Connect to Amazon
+	s.connect(akid, secret)
+
 	s.initialized = true
 }
 
@@ -56,16 +86,103 @@ func (s *AWSSQS) init(cfg plugin.Config) {
 func (s *AWSSQS) GetConfigPolicy() (plugin.ConfigPolicy, error) {
 	policy := plugin.NewConfigPolicy()
 
+	// The AWS API Key ID
+	policy.AddNewStringRule([]string{pluginVendor, pluginName},
+		"akid",
+		true)
+
+	// The AWS Secret
+	policy.AddNewStringRule([]string{pluginVendor, pluginName},
+		"secret",
+		true)
+
+	// The AWS SQS queue url
+	policy.AddNewStringRule([]string{pluginVendor, pluginName},
+		"queue",
+		true)
+
+	// The file name to use when debugging (optional)
+	policy.AddNewStringRule([]string{pluginVendor, pluginName},
+		"debug-file",
+		false)
+
 	return *policy, nil
 }
 
 // Publish - Publishes metrics to AWSSQS using the TOKEN found in the config
 func (s *AWSSQS) Publish(mts []plugin.Metric, cfg plugin.Config) error {
+	if len(mts) > 0 {
+		s.init(cfg)
+	}
+
+	// Get the current time
+	t := time.Now()
+
+	// iterate over the incoming metrics
+	for _, m := range mts {
+		// create our message
+		msg := map[string]string{
+			"hostname":  s.hostname,
+			"plugin":    pluginName,
+			"metric":    strings.Join(m.Namespace.Strings(), "."),
+			"value":     fmt.Sprintf("%v", m.Data),
+			"type":      fmt.Sprintf("%s", reflect.TypeOf(m.Data)),
+			"timestamp": fmt.Sprintf("%s", t.Format(time.RFC3339)),
+		}
+
+		// convert the message to json
+		json, err := json.Marshal(msg)
+		if err != nil {
+			return errors.New(fmt.Sprintf("Failed to marshall %v", msg))
+		}
+
+		// send the message
+		_, err = s.service.SendMessage(&sqs.SendMessageInput{
+			QueueUrl:    aws.String(s.queue),
+			MessageBody: aws.String(string(json)),
+		})
+
+		// log errors
+		if err != nil {
+			log.Println(err)
+		}
+	}
+
 	return nil
+}
+
+// getHostname attempts to determine the hostname
+func (s *AWSSQS) getHostname() {
+	hostname, err := os.Hostname()
+	if err != nil {
+		hostname = "localhost"
+	}
+	s.hostname = hostname
+}
+
+// setDebugFile will log to the specific debug_file in the config if present
+func (s *AWSSQS) setDebugFile(cfg plugin.Config) {
+	fileName, err := cfg.GetString("debug_file")
+	if err != nil {
+		//fmt.Fprintf(os.Stderr, "Error: %s", err.Error())
+		return
+	}
+
+	// Open the output file
+	f, err := os.OpenFile(fileName, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
+	if err != nil {
+		//fmt.Fprintf(os.Stderr, "Error: %s\n", err.Error())
+		return
+	}
+
+	// Set logging output for debugging
+	log.SetOutput(f)
 }
 
 // getAwsId obtains the AWS Key ID from the config file
 func (s *AWSSQS) getAwsId(cfg plugin.Config) string {
+	log.Printf("Reading AWS Key ID ('akid') from Config\n")
+
 	akid, err := cfg.GetString("akid")
 	if err != nil {
 		log.Fatalf("Error: Failed to find the 'akid' in config file\n")
@@ -76,6 +193,8 @@ func (s *AWSSQS) getAwsId(cfg plugin.Config) string {
 
 // getAwsSecret obtains the AWS Secret from the config file
 func (s *AWSSQS) getAwsSecret(cfg plugin.Config) string {
+	log.Printf("Reading AWS Secret ('secret') from Config\n")
+
 	secret, err := cfg.GetString("secret")
 	if err != nil {
 		log.Fatalf("Error: Failed to find 'secret' in config file\n")
@@ -86,6 +205,8 @@ func (s *AWSSQS) getAwsSecret(cfg plugin.Config) string {
 
 // getAwsQueue obtains the AWS SQS Queue from the config file
 func (s *AWSSQS) getAwsQueue(cfg plugin.Config) string {
+	log.Printf("Reading AWS SQS Queue ('queue') from Config\n")
+
 	queue, err := cfg.GetString("queue")
 	if err != nil {
 		log.Fatalf("Error: Failed to find 'queue' in config file\n")
@@ -98,6 +219,8 @@ func (s *AWSSQS) getAwsQueue(cfg plugin.Config) string {
 // complete list of AWSSQS regions can be found here:
 //   http://docs.aws.amazon.com/general/latest/gr/rande.html#sqs_region
 func (s *AWSSQS) extractRegion(queue string) string {
+	log.Printf("Extracting region from %s\n", queue)
+
 	// Setup our regular expression - queue's follow a pattern
 	re := regexp.MustCompile(`sqs\.(.*?)\.amazonaws\.com`)
 
@@ -112,12 +235,14 @@ func (s *AWSSQS) extractRegion(queue string) string {
 }
 
 // connect to the AWS SQS endpoint
-func (s *AWSSQS) connect(akid string, secret string, queue string) {
+func (s *AWSSQS) connect(akid string, secret string) {
+	log.Printf("Connecting to Amazon\n")
+
 	// Create credentials
 	creds := credentials.NewStaticCredentials(akid, secret, "")
 
 	// Creat the session
-	region := s.extractRegion(queue)
+	region := s.extractRegion(s.queue)
 	session := session.New(&aws.Config{
 		Region:      aws.String(region),
 		Credentials: creds,

@@ -21,7 +21,6 @@ package awssqs
 import (
 	//"bytes"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"log"
 	"os"
@@ -44,7 +43,7 @@ const (
 	pluginVersion = 1
 )
 
-// AWSSQS
+// AWSSQS is our main class and is used to hold useful properties
 type AWSSQS struct {
 	initialized bool
 	hostname    string
@@ -71,7 +70,7 @@ func (s *AWSSQS) init(cfg plugin.Config) {
 	s.getHostname()
 
 	// Get our required configuration parameters
-	akid := s.getAwsId(cfg)
+	akid := s.getAwsID(cfg)
 	secret := s.getAwsSecret(cfg)
 	queue := s.getAwsQueue(cfg)
 	s.queue = queue
@@ -133,7 +132,7 @@ func (s *AWSSQS) Publish(mts []plugin.Metric, cfg plugin.Config) error {
 		// convert the message to json
 		json, err := json.Marshal(msg)
 		if err != nil {
-			return errors.New(fmt.Sprintf("Failed to marshall %v", msg))
+			return fmt.Errorf("Failed to marshall %v", msg)
 		}
 
 		// send the message
@@ -179,8 +178,8 @@ func (s *AWSSQS) setDebugFile(cfg plugin.Config) {
 	log.SetOutput(f)
 }
 
-// getAwsId obtains the AWS Key ID from the config file
-func (s *AWSSQS) getAwsId(cfg plugin.Config) string {
+// getAwsID obtains the AWS Key ID from the config file
+func (s *AWSSQS) getAwsID(cfg plugin.Config) string {
 	log.Printf("Reading AWS Key ID ('akid') from Config\n")
 
 	akid, err := cfg.GetString("akid")

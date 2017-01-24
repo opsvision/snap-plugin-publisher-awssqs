@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# This is a helper script for unloading our plugin to expediate testing during development
+# This is a helper script for unloading our plugin to expedite testing during development
 
 snaptel task list | tail -1 | awk '{ print $1 }' | xargs snaptel task stop
 

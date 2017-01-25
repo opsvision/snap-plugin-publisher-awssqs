@@ -22,6 +22,7 @@ Snap-Telemetry Plugin for AWS SQS sends metric values to [AWS SQS](https://aws.a
 1. [Getting Started](#getting-started)
   * [System Requirements](#system-requirements)
   * [Installation](#installation)
+2. [Documentation](#documentation)
   * [Configuration and Usage](#configuration-and-usage)
   * [Publisher Output](#publisher-output)
 2. [Issues and Roadmap](#issues-and-roadmap)
@@ -83,6 +84,8 @@ snap-plugin-publisher-awssqs
 └── tasks
     └── awssqs.yaml
 ```
+
+## Documentation
 
 ### Configuration and Usage
 Set up the [Snap framework](https://github.com/intelsdi-x/snap/blob/master/README.md#getting-started)

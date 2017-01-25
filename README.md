@@ -103,12 +103,13 @@ Loaded Time: Tue, 24 Jan 2017 20:45:48 UTC
 You need to create or update a task file to use the AWS SQS publisher plugin. We have provided an example, _tasks/awssqs.yaml_ shown below. In our example, we utilize the psutil collector so we have some data to work with.  There are four (4) configuration settings you can use.
 
 |Setting|Description|Required?|
-|debug_file|An absolute path to a log file to use for debugging|No|
-|akid|The Amazon API Key ID|Yes|
-|secret|The Amazon Secret|Yes|
-|queue|The Amazon SQS URL|Yes|
+|-------|-----------|---------|
+|debug_file|An absolute path to a log file - this makes debugging easier.|No|
+|akid|The Amazon [API Key ID](https://aws.amazon.com/developers/access-keys/)|Yes|
+|secret|The [Amazon Secret](https://aws.amazon.com/developers/access-keys/)|Yes|
+|queue|The Amazon SQS URL; you can follow [this tutorial](http://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-getting-started.html) for setting up SQS.|Yes|
 
-_Note: The Region is extrapolated from the queue_
+_Note: The Region, required by AWS, is extrapolated from the queue URL._
 
 ```
 ---
@@ -146,7 +147,17 @@ $ snaptel task watch f3ad05b2-3706-4991-ab29-c96e15813893
 ```
 
 ### Publisher Output
-
+The AWS SQS publisher plugin sends a JSON string to the queue with six (6) attributes shown below.
+```
+{
+  "hostname":"localhost",
+  "metric":"intel.psutil.load.load15",
+  "plugin":"awssqs",
+  "timestamp":"2017-01-25T13:17:39Z",
+  "type":"float64",
+  "value":"0.05"
+}
+```
 
 ## Issues and Roadmap
 * **Testing:** The testing being done is rudimentary at best. Need to improve the testing.

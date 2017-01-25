@@ -140,11 +140,17 @@ _Note: The Region, required by AWS, is extrapolated from the queue URL._
 Once the task file has been created, you can create and watch the task.
 ```
 $ snaptel task create -t awssqs.yaml
+Using task manifest to create task
+Task created
+ID: ad6d5e24-a280-4fa4-85d5-6b7795739f90
+Name: Task-ad6d5e24-a280-4fa4-85d5-6b7795739f90
+State: Running
 $ snaptel task list
 ID                                       NAME                                         STATE     ...
-f3ad05b2-3706-4991-ab29-c96e15813893     Task-f3ad05b2-3706-4991-ab29-c96e15813893    Running   ...
+ad6d5e24-a280-4fa4-85d5-6b7795739f90     Task-ad6d5e24-a280-4fa4-85d5-6b7795739f90    Running   ...
 $ snaptel task watch f3ad05b2-3706-4991-ab29-c96e15813893
 ```
+_Note: Truncated results for brevity._
 
 ### Publisher Output
 The AWS SQS publisher plugin sends a JSON string to the queue with six (6) attributes shown below.

@@ -148,10 +148,10 @@ Task created
 ID: ad6d5e24-a280-4fa4-85d5-6b7795739f90
 Name: Task-ad6d5e24-a280-4fa4-85d5-6b7795739f90
 State: Running
+
 $ snaptel task list
 ID                                       NAME                                         STATE     ...
 ad6d5e24-a280-4fa4-85d5-6b7795739f90     Task-ad6d5e24-a280-4fa4-85d5-6b7795739f90    Running   ...
-$ snaptel task watch f3ad05b2-3706-4991-ab29-c96e15813893
 ```
 _Note: Truncated results for brevity._
 

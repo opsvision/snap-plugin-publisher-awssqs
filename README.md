@@ -23,10 +23,8 @@ Snap-Telemetry Plugin for AWS SQS sends metric values to [AWS SQS](https://aws.a
   * [System Requirements](#system-requirements)
   * [Installation](#installation)
   * [Configuration and Usage](#configuration-and-usage)
-2. [Documentation](#documentation)
-  * [Collected Metrics](#collected-metrics)
-  * [Examples](#examples)
-  * [Issues and Roadmap](#issues-and-roadmap)
+  * [Publisher Output](#publisher-output)
+2. [Issues and Roadmap](#issues-and-roadmap)
 3. [Acknowledgements](#acknowledgements)
 
 ## Getting Started
@@ -40,7 +38,7 @@ All OSs currently supported by snap:
 * Darwin/amd64
 
 ### Installation
-The following sections provide a guide for obtaining the Syslog collector plugin.
+The following sections provide a guide for obtaining the plugin. The plugin is written in Go. Make sure you follow the [guide](https://golang.org/doc/code.html#Workspaces) for setting up your Go workspace.
 
 #### Download
 The simplest approach is to use ```go get``` to fetch and build the plugin. The following command will place the binary in your ```$GOPATH/bin``` folder where you can load it into snap.
@@ -49,7 +47,7 @@ $ go get github.com/opsvision/snap-plugin-publisher-awssqs
 ```
 
 #### Building
-The following provides instructions for building the plugin yourself if you decided to downlaod the source. We assume you already have a $GOPATH setup for [golang development](https://golang.org/doc/code.html). The repository utilizes [glide](https://github.com/Masterminds/glide) for library management.
+The following provides instructions for building the plugin yourself if you decided to downlaod the source. We assume you already have a $GOPATH setup for [golang development](https://golang.org/doc/code.html). The plugin utilizes [glide](https://github.com/Masterminds/glide) for library management.
 ```
 $ mkdir -p $GOPATH/src/github.com/opsvision
 $ cd $GOPATH/src/github.com/opsvision
@@ -69,7 +67,7 @@ $ go install
 ```
 
 #### Source structure
-The following file structure provides an overview of where the files exist in the source tree. The [awssqs.go](https://github.com/opsvision/snap-plugin-publisher-awssqs/blob/master/awssqs/awssqs.go) file does all the work.
+The following file structure provides an overview of where the files exist in the source tree.
 ```
 snap-plugin-publisher-awssqs
 ├── awssqs
@@ -93,10 +91,51 @@ Set up the [Snap framework](https://github.com/intelsdi-x/snap/blob/master/READM
 Once the framework is up and running, you can load the plugin.
 ```
 $ snaptel plugin load snap-plugin-publisher-awssqs
+Plugin loaded
+Name: awssqs
+Version: 1
+Type: publisher
+Signed: false
+Loaded Time: Tue, 24 Jan 2017 20:45:48 UTC
 ```
 
 #### Task File
-TBD
+You need to create or update a task file to use the AWS SQS publisher plugin. We have provided an example, _tasks/awssqs.yaml_ shown below. In our example, we utilize the psutil collector so we have some data to work with.  There are four (4) configuration settings you can use.
+
+|Setting|Description|Required?|
+|debug_file|An absolute path to a log file to use for debugging|No|
+|akid|The Amazon API Key ID|Yes|
+|secret|The Amazon Secret|Yes|
+|queue|The Amazon SQS URL|Yes|
+
+_Note: The Region is extrapolated from the queue_
+
+```
+---
+  version: 1
+  schedule:
+    type: "simple"
+    interval: "5s"
+  max-failures: 10
+  workflow:
+    collect:
+      config:
+      metrics:
+        /intel/psutil/load/load1: {} 
+        /intel/psutil/load/load15: {}
+        /intel/psutil/load/load5: {}
+        /intel/psutil/vm/available: {}
+        /intel/psutil/vm/free: {}
+        /intel/psutil/vm/used: {}
+      publish:
+        - plugin_name: "awssqs"
+          config:
+            debug_file: "/tmp/awssqs-debug.log"
+            akid: "1234ABCD"
+            secret: "1234ABCD"
+            queue: "https://sqs.us-east-1.amazonaws.com/208379614050/sqs_demo"
+```
+
 Once the task file has been created, you can create and watch the task.
 ```
 $ snaptel task create -t awssqs.yaml
@@ -106,10 +145,10 @@ f3ad05b2-3706-4991-ab29-c96e15813893     Task-f3ad05b2-3706-4991-ab29-c96e158138
 $ snaptel task watch f3ad05b2-3706-4991-ab29-c96e15813893
 ```
 
-## Documentation
-TBD
+### Publisher Output
 
-### Issues and Roadmap
+
+## Issues and Roadmap
 * **Testing:** The testing being done is rudimentary at best. Need to improve the testing.
 
 _Note: Please let me know if you find a bug or have feedbck on how to improve the collector._
